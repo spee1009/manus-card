@@ -1,517 +1,99 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MANUS 관리자</title>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리자 페이지</title>
 
 <style>
-:root{
-  --bg:#eef2f7;
-  --card:#ffffff;
-  --text:#111827;
-  --muted:#6b7280;
-  --primary:#2563eb;
-  --danger:#ef4444;
-  --radius:22px;
-}
-
-*{box-sizing:border-box}
 body{
-  margin:0;
-  background:var(--bg);
-  font-family:Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  color:var(--text);
-}
-.container{
-  max-width:520px;
-  margin:0 auto;
-  padding:20px 16px 110px;
+  font-family:-apple-system,BlinkMacSystemFont,"Pretendard",sans-serif;
+  background:#f4f6fb;
+  padding:20px;
 }
 .card{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:20px;
-  margin-bottom:18px;
-  box-shadow:0 14px 30px rgba(0,0,0,.12);
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.1);
 }
-h2{margin:0 0 12px;font-size:18px}
-label{
-  font-size:14px;
-  display:flex;
-  gap:8px;
-  align-items:center;
-  margin:8px 0 10px;
-  color:var(--text);
-}
-
-input, textarea, select, button{
+textarea,input,button{
   width:100%;
-  padding:12px 12px;
-  border-radius:14px;
-  border:1px solid #e5e7eb;
-  margin-bottom:10px;
-  font-size:16px;          /* iOS 확대 방지 */
-  outline:none;
+  padding:10px;
+  margin-top:8px;
+  border-radius:10px;
+  border:1px solid #ccc;
 }
-textarea{resize:vertical; min-height:110px}
 button{
-  background:var(--primary);
+  background:#007aff;
   color:#fff;
   border:none;
-  font-weight:800;
   cursor:pointer;
-  transition:transform .06s ease, opacity .12s ease;
+  font-weight:600;
 }
-button:active{transform:scale(.99)}
-button[disabled]{opacity:.55; cursor:not-allowed}
-
-.hidden{display:none}
-img.preview{
-  width:100%;
-  border-radius:16px;
-  margin:6px 0 12px;
-  max-height:220px;
-  object-fit:cover;
-  background:#f3f4f6;
-}
-
-/* 후기 카드 */
-.review{
-  background:#f8fafc;
-  border-radius:16px;
-  padding:12px;
-  margin-bottom:10px;
-  border:1px solid #eef2f7;
-}
-.review b{display:block; margin-bottom:6px}
-.review .meta{color:var(--muted); font-size:12px; margin-bottom:6px}
-.review .btn-del{
-  background:var(--danger);
-  margin-top:8px;
-}
-
-/* ===== 로딩 오버레이 ===== */
-#loadingOverlay{
+.save{background:#34c759;}
+.toast{
   position:fixed;
-  inset:0;
-  background:rgba(17,24,39,.45);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-}
-.loading-box{
-  width:min(320px, 86vw);
-  background:rgba(255,255,255,.92);
-  border-radius:18px;
-  padding:18px 16px;
-  box-shadow:0 22px 60px rgba(0,0,0,.25);
-  text-align:center;
-}
-.spinner{
-  width:40px;
-  height:40px;
-  border-radius:999px;
-  border:4px solid rgba(37,99,235,.20);
-  border-top-color:rgba(37,99,235,1);
-  margin:0 auto 10px;
-  animation:spin 0.9s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-#loadingMsg{font-weight:800; font-size:14px; color:#111827}
-#loadingSub{margin-top:6px; color:#6b7280; font-size:12px}
-
-/* ===== 토스트 ===== */
-#toast{
-  position:fixed;
+  bottom:30px;
   left:50%;
-  bottom:18px;
   transform:translateX(-50%);
-  width:min(520px, calc(100vw - 24px));
-  z-index:10000;
-  pointer-events:none;
-}
-.toast-item{
-  margin:10px auto 0;
-  background:rgba(17,24,39,.92);
+  background:rgba(0,0,0,.85);
   color:#fff;
-  border-radius:16px;
-  padding:12px 14px;
-  box-shadow:0 18px 42px rgba(0,0,0,.28);
-  display:flex;
-  gap:10px;
-  align-items:flex-start;
-  animation:toastIn .22s ease;
+  padding:12px 18px;
+  border-radius:999px;
+  opacity:0;
+  transition:.3s;
 }
-.toast-icon{
-  width:22px; height:22px; flex:0 0 22px;
-  display:flex; align-items:center; justify-content:center;
-  font-weight:900;
-}
-.toast-text{flex:1}
-.toast-title{font-weight:900; font-size:14px; margin-bottom:2px}
-.toast-desc{font-size:12px; color:rgba(255,255,255,.85); line-height:1.35}
-.toast-item.success{background:rgba(22,163,74,.95)}
-.toast-item.error{background:rgba(239,68,68,.95)}
-@keyframes toastIn{
-  from{opacity:0; transform:translateY(8px)}
-  to{opacity:1; transform:translateY(0)}
-}
-
-/* 모바일 최적화 */
-@media (max-width: 480px){
-  .container{padding:16px 12px 120px}
-  .card{padding:16px; border-radius:20px}
-  h2{font-size:17px}
-  img.preview{max-height:190px}
-}
+.toast.show{opacity:1;}
 </style>
 </head>
 
 <body>
-<div class="container">
-
-  <!-- 로그인 -->
-  <div class="card" id="loginBox">
-    <h2>관리자 로그인</h2>
-    <input type="password" id="pw" placeholder="비밀번호 입력 (0708)" />
-    <button type="button" id="btnLogin" onclick="login()">로그인</button>
-    <div style="color:var(--muted); font-size:12px; margin-top:6px;">
-      * 로그인 후에만 저장/삭제가 가능합니다.
-    </div>
-  </div>
-
-  <!-- 관리자 -->
-  <div id="adminBox" class="hidden">
-
-    <!-- 프로필 -->
-    <div class="card">
-      <h2>👤 프로필 관리</h2>
-      <input type="file" id="profileImg" accept="image/*" />
-      <img id="profilePreview" class="preview" alt="프로필 미리보기" />
-      <input id="profileName" placeholder="이름 (예: 김상일 매니저)" />
-      <input id="profileDesc" placeholder="소개 문구 (예: KT플라자 중계아울렛점)" />
-      <button type="button" id="btnSaveProfile" onclick="saveProfile()">프로필 저장</button>
-    </div>
-
-    <!-- 패키지 -->
-    <div class="card">
-      <h2>📦 패키지 관리</h2>
-      <select id="pkgKey">
-        <option value="galaxy">갤럭시</option>
-        <option value="iphone">아이폰</option>
-        <option value="award">수상 · 경력</option>
-        <option value="review">고객 후기</option>
-      </select>
-
-      <label>
-        <input type="checkbox" id="pkgVisible" checked />
-        방문자에게 노출
-      </label>
-
-      <input type="file" id="pkgImg" accept="image/*,.gif" />
-      <img id="pkgPreview" class="preview" alt="패키지 미리보기" />
-      <textarea id="pkgText" placeholder="패키지 설명(글)"></textarea>
-      <button type="button" id="btnSavePkg" onclick="savePackage()">패키지 저장</button>
-      <div style="color:var(--muted); font-size:12px;">
-        * 이미지를 선택하지 않고 저장하면 글/노출만 업데이트됩니다.
-      </div>
-    </div>
-
-    <!-- 후기 -->
-    <div class="card">
-      <h2>⭐ 고객 후기 관리</h2>
-      <div id="reviewList">불러오는 중...</div>
-    </div>
-
-    <!-- 통계 -->
-    <div class="card">
-      <h2>📊 후기 통계</h2>
-      <div id="stats">불러오는 중...</div>
-    </div>
-
-  </div>
-</div>
-
-<!-- 로딩 오버레이 -->
-<div id="loadingOverlay">
-  <div class="loading-box">
-    <div class="spinner"></div>
-    <div id="loadingMsg">처리 중...</div>
-    <div id="loadingSub">잠시만 기다려주세요</div>
-  </div>
-</div>
-
-<!-- 토스트 -->
-<div id="toast"></div>
 
 <script>
-/* =========================
-   Firebase 초기화
-========================= */
-firebase.initializeApp({
-  apiKey:"AIzaSyA9oBNryhEX9nYOfxXJndOhR8aybEijr78",
-  authDomain:"manus-card.firebaseapp.com",
-  databaseURL:"https://manus-card-default-rtdb.firebaseio.com",
-  projectId:"manus-card",
-  storageBucket:"manus-card.firebasestorage.app"
-});
-const db = firebase.database();
-const st = firebase.storage();
-
-/* =========================
-   UX helpers: Loading / Toast
-========================= */
-let busyCount = 0;
-
-function setBusy(on, msg="처리 중...", sub="잠시만 기다려주세요"){
-  if(on){
-    busyCount++;
-    loadingMsg.textContent = msg;
-    loadingSub.textContent = sub;
-    loadingOverlay.style.display = "flex";
-    disableAllButtons(true);
-  }else{
-    busyCount = Math.max(0, busyCount-1);
-    if(busyCount === 0){
-      loadingOverlay.style.display = "none";
-      disableAllButtons(false);
-    }
+const ADMIN_PW="0708";
+if(localStorage.getItem("adminLogin")!=="ok"){
+  const pw=prompt("관리자 비밀번호를 입력하세요");
+  if(pw!==ADMIN_PW){
+    alert("비밀번호 오류");
+    location.href="index.html";
   }
+  localStorage.setItem("adminLogin","ok");
 }
-
-function disableAllButtons(disabled){
-  document.querySelectorAll("button").forEach(b=>{
-    // 로그인박스 숨겨진 상태에서도 비활성화 되지만 상관없음
-    b.disabled = disabled;
-  });
-}
-
-function toast(type, title, desc=""){
-  const el = document.createElement("div");
-  el.className = `toast-item ${type}`;
-  const icon = type === "success" ? "✓" : type === "error" ? "!" : "i";
-  el.innerHTML = `
-    <div class="toast-icon">${icon}</div>
-    <div class="toast-text">
-      <div class="toast-title">${escapeHtml(title)}</div>
-      ${desc ? `<div class="toast-desc">${escapeHtml(desc)}</div>` : ``}
-    </div>
-  `;
-  toast.appendChild(el);
-  setTimeout(()=>{ el.style.opacity="0"; el.style.transform="translateY(6px)"; }, 2400);
-  setTimeout(()=>{ el.remove(); }, 2900);
-}
-
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, s => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
-  }[s]));
-}
-
-/* =========================
-   로그인
-========================= */
-function login(){
-  if(pw.value === "0708"){
-    loginBox.style.display="none";
-    adminBox.classList.remove("hidden");
-    toast("success","로그인 성공","관리자 모드가 활성화되었습니다.");
-    hydrateProfile();
-    hydratePackageUI();  // 선택된 패키지 정보 불러오기
-    loadReviews();
-  }else{
-    toast("error","비밀번호 오류","입력한 비밀번호를 확인해주세요.");
-  }
-}
-
-/* =========================
-   프로필: 기존 값 로드 + 저장
-========================= */
-function hydrateProfile(){
-  db.ref("profile").once("value").then(snap=>{
-    const p = snap.val() || {};
-    profileName.value = p.name || "";
-    profileDesc.value = p.desc || "";
-    profilePreview.src = p.img || "";
-  }).catch(err=>{
-    toast("error","프로필 로드 실패", err.message || String(err));
-  });
-}
-
-function saveProfile(){
-  const file = profileImg.files[0];
-  const name = profileName.value.trim();
-  const desc = profileDesc.value.trim();
-
-  if(!name || !desc){
-    return toast("error","입력 필요","이름/소개 문구를 입력해주세요.");
-  }
-
-  // 이미지가 없어도 텍스트만 저장 가능하게 (PC/모바일 모두 편함)
-  if(!file){
-    setBusy(true,"프로필 저장 중...","텍스트 정보를 저장하고 있어요");
-    db.ref("profile").update({ name, desc })
-      .then(()=>{
-        toast("success","프로필 저장 완료","이름/소개가 반영되었습니다.");
-      })
-      .catch(err=>{
-        toast("error","저장 실패", err.message || String(err));
-      })
-      .finally(()=>setBusy(false));
-    return;
-  }
-
-  setBusy(true,"프로필 저장 중...","이미지를 업로드하고 있어요");
-  st.ref("profile/profile").put(file).then(s =>
-    s.ref.getDownloadURL().then(url=>{
-      return db.ref("profile").set({ name, desc, img:url }).then(()=>{
-        profilePreview.src = url;
-        toast("success","프로필 저장 완료","방문자 페이지에 바로 반영됩니다.");
-      });
-    })
-  ).catch(err=>{
-    toast("error","저장 실패", err.message || String(err));
-  }).finally(()=>{
-    setBusy(false);
-    profileImg.value = "";
-  });
-}
-
-/* =========================
-   패키지: 선택시 기존 값 로드 + 저장
-========================= */
-pkgKey.addEventListener("change", hydratePackageUI);
-
-function hydratePackageUI(){
-  const key = pkgKey.value;
-  db.ref("packages/"+key).once("value").then(snap=>{
-    const d = snap.val() || {};
-    pkgText.value = d.text || "";
-    pkgVisible.checked = (d.visible !== false);
-    pkgPreview.src = d.img || "";
-  }).catch(err=>{
-    toast("error","패키지 로드 실패", err.message || String(err));
-  });
-}
-
-function savePackage(){
-  const key = pkgKey.value;
-  const visible = pkgVisible.checked;
-  const text = pkgText.value.trim();
-  const file = pkgImg.files[0];
-
-  if(!text && !file){
-    return toast("error","입력 필요","설명 또는 이미지를 입력/선택해주세요.");
-  }
-
-  // 이미지 없으면 update만
-  if(!file){
-    setBusy(true,"패키지 저장 중...", "텍스트/노출 상태를 저장하고 있어요");
-    db.ref("packages/"+key).update({ text, visible })
-      .then(()=>{
-        toast("success","패키지 저장 완료", `${key} 내용이 반영되었습니다.`);
-      })
-      .catch(err=>{
-        toast("error","저장 실패", err.message || String(err));
-      })
-      .finally(()=>setBusy(false));
-    return;
-  }
-
-  setBusy(true,"패키지 저장 중...","이미지를 업로드하고 있어요");
-  // GIF 포함 가능: 파일 확장자 유지 (jpg 강제 X)
-  const ext = (file.name.split(".").pop() || "img").toLowerCase();
-  st.ref(`packages/${key}.${ext}`).put(file).then(s =>
-    s.ref.getDownloadURL().then(url=>{
-      return db.ref("packages/"+key).set({ text, visible, img:url }).then(()=>{
-        pkgPreview.src = url;
-        toast("success","패키지 저장 완료","방문자 페이지에 바로 반영됩니다.");
-      });
-    })
-  ).catch(err=>{
-    toast("error","저장 실패", err.message || String(err));
-  }).finally(()=>{
-    setBusy(false);
-    pkgImg.value = "";
-  });
-}
-
-/* =========================
-   후기 로드 + 삭제 + 통계
-========================= */
-function loadReviews(){
-  db.ref("reviews").on("value", snap=>{
-    const data = snap.val() || {};
-    const entries = Object.entries(data);
-
-    // 리스트
-    reviewList.innerHTML = "";
-    if(entries.length === 0){
-      reviewList.innerHTML = `<div style="color:var(--muted); font-size:13px;">등록된 후기가 없습니다.</div>`;
-    }else{
-      // 최신순
-      entries.sort((a,b)=> (b[1].time||0) - (a[1].time||0));
-      for(const [id, r] of entries){
-        const timeStr = r.time ? new Date(r.time).toLocaleString() : "";
-        const div = document.createElement("div");
-        div.className = "review";
-        div.innerHTML = `
-          <b>${escapeHtml(r.name || "익명")} (${Number(r.rating||0)}★)</b>
-          <div class="meta">${escapeHtml(timeStr)}</div>
-          <div>${escapeHtml(r.text || "")}</div>
-          <button type="button" class="btn-del" onclick="delReview('${id}')">삭제</button>
-        `;
-        reviewList.appendChild(div);
-      }
-    }
-
-    // 통계
-    let sum = 0;
-    let cnt = 0;
-    for(const [, r] of entries){
-      const rt = Number(r.rating||0);
-      if(rt > 0){ sum += rt; cnt++; }
-    }
-    const avg = cnt ? (sum/cnt).toFixed(1) : "0.0";
-    stats.innerHTML = `
-      총 후기 수: <b>${entries.length}</b>개<br>
-      평균 별점: <b>⭐ ${avg}</b>
-    `;
-  }, err=>{
-    toast("error","후기 로드 실패", err.message || String(err));
-  });
-}
-
-function delReview(id){
-  if(!confirm("이 후기를 삭제할까요?")) return;
-  setBusy(true,"후기 삭제 중...","데이터를 처리하고 있어요");
-  db.ref("reviews/"+id).remove()
-    .then(()=>toast("success","삭제 완료","후기가 삭제되었습니다."))
-    .catch(err=>toast("error","삭제 실패", err.message || String(err)))
-    .finally(()=>setBusy(false));
-}
-
-/* =========================
-   미리보기(선택 즉시 표시)
-========================= */
-profileImg.addEventListener("change", ()=>{
-  const f = profileImg.files[0];
-  if(!f) return;
-  profilePreview.src = URL.createObjectURL(f);
-});
-
-pkgImg.addEventListener("change", ()=>{
-  const f = pkgImg.files[0];
-  if(!f) return;
-  pkgPreview.src = URL.createObjectURL(f);
-});
 </script>
+
+<div class="card">
+  <h3>🏆 수상 · 경력 입력</h3>
+  <textarea id="careerText" rows="5"
+    placeholder="예)&#10;KT 우수 매니저 10년 연속&#10;고객 만족도 최우수"></textarea>
+</div>
+
+<div class="card">
+  <button class="save" onclick="saveCareer()">💾 저장하기</button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* 불러오기 */
+const careerEl=document.getElementById("careerText");
+careerEl.value = localStorage.getItem("careerText") || "";
+
+/* 저장 */
+function saveCareer(){
+  localStorage.setItem("careerText", careerEl.value);
+  showToast("저장 완료!");
+}
+
+/* 토스트 */
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2000);
+}
+</script>
+
 </body>
 </html>
