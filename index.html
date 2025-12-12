@@ -3,198 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MANUS CARD</title>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<title>전자 명함</title>
 
 <style>
-*{box-sizing:border-box}
 body{
-  margin:0;
-  font-family:Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Pretendard",sans-serif;
   background:#eef2f7;
+  padding:20px;
 }
-.container{max-width:420px;margin:0 auto;padding:20px 14px 60px}
-
-/* 카드 */
 .card{
-  background:rgba(255,255,255,.88);
-  backdrop-filter:blur(16px);
-  border-radius:26px;
-  padding:22px;
-  margin-bottom:18px;
-  box-shadow:0 18px 40px rgba(0,0,0,.15);
+  background:#fff;
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 10px 24px rgba(0,0,0,.15);
+  margin-bottom:16px;
 }
-
-/* 프로필 */
-.profile{text-align:center}
-.profile-img{
-  width:110px;height:110px;border-radius:50%;
-  background:#ddd center/cover no-repeat;
-  margin:0 auto 12px;
-}
-.profile h2{margin:0;font-size:20px}
-.profile p{margin:4px 0 0;font-size:13px;color:#666}
-
-/* 버튼 */
-.btns{display:flex;gap:12px;margin-top:18px}
-.btn{
-  flex:1;padding:14px 0;border-radius:18px;
-  text-align:center;color:#fff;font-weight:700;text-decoration:none;
-}
-.call{background:#2563eb}
-.reserve{background:#16a34a}
-
-/* 패키지 */
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 .pkg{
-  aspect-ratio:1/1;border-radius:22px;background:#fff;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-weight:700;cursor:pointer;transition:.25s;
-  box-shadow:0 14px 30px rgba(0,0,0,.12);
+  border:2px solid #34c759;
+  border-radius:18px;
+  padding:20px;
+  text-align:center;
+  font-weight:700;
+  cursor:pointer;
 }
-.pkg span{font-size:12px;color:#666;margin-top:6px}
-.pkg.active{transform:scale(.96)}
-.blue{border:3px solid #3b82f6}
-.red{border:3px solid #ef4444}
-.yellow{border:3px solid #facc15}
-.green{border:3px solid #22c55e}
-
-/* 상세 */
 .detail{
-  margin-top:16px;padding:18px;background:#f8fafc;border-radius:18px;
-  display:none;animation:slide .35s ease;
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  transform:translateY(20px);
+  transition:.4s ease;
 }
-.detail.show{display:block}
-@keyframes slide{
-  from{opacity:0;transform:translateY(10px)}
-  to{opacity:1;transform:translateY(0)}
+.detail.active{
+  max-height:1000px;
+  opacity:1;
+  transform:translateY(0);
 }
-
-/* 후기 */
-.review-box input,textarea{
-  width:100%;padding:12px;border-radius:12px;
-  border:1px solid #ddd;margin-bottom:10px;
-}
-.review-box button{
-  width:100%;padding:14px;border:none;border-radius:14px;
-  background:#22c55e;color:#fff;font-weight:700;
-}
-.stars span{
-  font-size:26px;cursor:pointer;color:#ddd;
-}
-.stars span.active{color:#facc15}
-
-.review-item{
-  background:#fff;border-radius:14px;padding:14px;margin-top:10px;
-  box-shadow:0 6px 18px rgba(0,0,0,.1);
-}
-.review-item b{display:block;margin-bottom:4px}
 </style>
 </head>
 
 <body>
-<div class="container">
 
-<!-- 프로필 -->
-<div class="card profile">
-  <div class="profile-img" style="background-image:url('https://via.placeholder.com/200')"></div>
-  <h2>김상일 매니저</h2>
-  <p>KT플라자 중계아울렛점</p>
-  <div class="btns">
-    <a href="tel:01099996132" class="btn call">📞 전화 문의</a>
-    <a href="#" class="btn reserve">📅 예약하기</a>
-  </div>
-</div>
-
-<!-- 패키지 -->
 <div class="card">
-  <div class="grid">
-    <div class="pkg blue" onclick="openPkg(this,'galaxy')">📱 갤럭시<span>삼성 최신</span></div>
-    <div class="pkg red" onclick="openPkg(this,'iphone')">🍎 아이폰<span>애플 최신</span></div>
-    <div class="pkg yellow" onclick="openPkg(this,'award')">🏆 수상<span>공식 인증</span></div>
-    <div class="pkg green" onclick="openPkg(this,'review')">⭐ 후기<span>실시간</span></div>
-  </div>
-  <div id="detail" class="detail"></div>
+  <h3 style="text-align:center;">메인 패키지</h3>
+  <div class="pkg" onclick="openCareer()">🏆 수상 · 경력</div>
 </div>
 
-</div>
+<div id="careerDetail" class="detail"></div>
 
 <script>
-/* Firebase 설정 */
-firebase.initializeApp({
-  apiKey: "AIzaSyA9oNBrYhEX9NyOfxXJndOhR8aybEjIr78",
-  authDomain: "manus-card.firebaseapp.com",
-  databaseURL: "https://manus-card-default-rtdb.firebaseio.com",
-  projectId: "manus-card"
-});
-const db=firebase.database().ref("reviews");
+function openCareer(){
+  const box=document.getElementById("careerDetail");
+  const txt=localStorage.getItem("careerText");
 
-const detail=document.getElementById("detail");
-let rating=0;
+  box.innerHTML = txt
+    ? `<div class="card"><p>${txt.replace(/\n/g,"<br>")}</p></div>`
+    : `<div class="card">등록된 수상·경력이 없습니다.</div>`;
 
-function openPkg(el,key){
-  document.querySelectorAll(".pkg").forEach(p=>p.classList.remove("active"));
-  el.classList.add("active");
-
-  if(key!=="review"){
-    detail.innerHTML={
-      galaxy:"갤럭시 최신 구성 안내",
-      iphone:"아이폰 최신 구성 안내",
-      award:"공식 수상 및 인증 경력"
-    }[key];
-    detail.classList.add("show");
-    return;
-  }
-
-  renderReviewForm();
-  loadReviews();
-}
-
-function renderReviewForm(){
-  detail.innerHTML=`
-  <div class="review-box">
-    <input id="name" placeholder="이름">
-    <div class="stars">
-      ${[1,2,3,4,5].map(i=>`<span onclick="setStar(${i})">★</span>`).join("")}
-    </div>
-    <textarea id="text" rows="3" placeholder="후기 작성"></textarea>
-    <button onclick="saveReview()">후기 저장</button>
-    <div id="list"></div>
-  </div>`;
-  detail.classList.add("show");
-}
-
-function setStar(n){
-  rating=n;
-  document.querySelectorAll(".stars span").forEach((s,i)=>{
-    s.classList.toggle("active",i<n);
-  });
-}
-
-function saveReview(){
-  const name=document.getElementById("name").value;
-  const text=document.getElementById("text").value;
-  if(!name||!text||!rating)return alert("모두 입력해주세요");
-  db.push({name,text,rating,time:Date.now()});
-}
-
-function loadReviews(){
-  db.limitToLast(50).on("value",snap=>{
-    const list=document.getElementById("list");
-    if(!list)return;
-    list.innerHTML="";
-    const data=snap.val()||{};
-    Object.values(data).reverse().forEach(r=>{
-      list.innerHTML+=`
-      <div class="review-item">
-        <b>${r.name} ${"★".repeat(r.rating)}</b>
-        ${r.text}
-      </div>`;
-    });
-  });
+  box.classList.add("active");
+  box.scrollIntoView({behavior:"smooth"});
 }
 </script>
 
